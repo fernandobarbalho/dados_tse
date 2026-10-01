@@ -3,6 +3,8 @@ library(tidyverse)
 library(sandwich)
 library(lmtest)
 
+library(fixest)
+
 #Queries para base de dados
 
 # SELECT votacao.ano,
@@ -165,3 +167,11 @@ coeftest(
     type = "HC1"
   )
 )
+
+modelo_cluster_ano <- feols(
+  proporcao_abstencoes ~ ano + houve_segundo_turno_governador,
+  data = dados_modelo %>% filter(turno == "2"),
+  cluster = ~ sigla_uf
+)
+
+summary(modelo_cluster_ano)
