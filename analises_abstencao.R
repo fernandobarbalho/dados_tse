@@ -39,7 +39,6 @@ comparecimento_governo <-
   read_csv("comparecimento_governo.csv") %>%
   mutate(houve_segundo_turno_governador = "sim")
 
-library(tibble)
 
 ufs_regioes <- tribble(
   ~sigla_uf, ~regiao,
@@ -175,3 +174,30 @@ modelo_cluster_ano <- feols(
 )
 
 summary(modelo_cluster_ano)
+
+
+dados_modelo %>%
+  summarise(quantidade = n(),
+            .by = c(sigla_uf, ano, houve_segundo_turno_governador))
+
+
+dados_modelo %>%
+  filter(turno == "2") %>%
+  distinct(sigla_uf, ano, houve_segundo_turno_governador) %>%
+  count(sigla_uf, houve_segundo_turno_governador) %>%
+  tidyr::pivot_wider(
+    names_from = houve_segundo_turno_governador,
+    values_from = n,
+    values_fill = 0
+  )
+
+
+modelo_painel <- feols(
+  proporcao_abstencoes ~ houve_segundo_turno_governador |
+    sigla_uf + ano,
+  data = dados_modelo %>%
+    filter(turno == "2"),
+  cluster = ~ sigla_uf
+)
+
+summary(modelo_painel)
